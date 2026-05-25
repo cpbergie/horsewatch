@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import DashboardClient from './DashboardClient'
 
@@ -12,7 +13,12 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  // Use admin client for profile reads — getUser() already verified auth,
+  // and the anon client's RLS can fail on first load if the session cookie
+  // hasn't been forwarded to PostgREST yet.
+  const admin = createAdminClient()
+
+  const { data: profile } = await admin
     .from('profiles')
     .select('id, full_name, location, is_owner, is_caretaker, is_approved, owner_profiles(*), caretaker_profiles(*)')
     .eq('id', user.id)
@@ -20,7 +26,7 @@ export default async function DashboardPage() {
 
   if (!profile) redirect('/setup')
 
-  const { data: recentCaretakers } = await supabase
+  const { data: recentCaretakers } = await admin
     .from('profiles')
     .select('id, full_name, location, profile_photo_url, caretaker_profiles(services)')
     .eq('is_caretaker', true)
