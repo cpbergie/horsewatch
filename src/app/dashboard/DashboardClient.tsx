@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { OwnerEditDrawer, CaretakerEditDrawer, type OwnerEditProps, type CaretakerEditProps } from './EditDrawer'
 
 // ── Types ─────────────────────────────────────────────────
 
@@ -9,19 +10,26 @@ interface OwnerProfile {
   num_horses: number
   horse_details: string | null
   property_address: string
+  barn_access_notes: string | null
 }
 
 interface CaretakerProfile {
   years_experience: number
   services: string[]
   disciplines: string[]
+  has_own_transport: boolean
   rates_per_day: string | null
+  availability_notes: string | null
+  references_available: boolean
 }
 
 interface Profile {
   id: string
   full_name: string
+  phone: string | null
   location: string
+  bio: string | null
+  profile_photo_url: string | null
   is_owner: boolean
   is_caretaker: boolean
   is_approved: boolean
@@ -64,14 +72,31 @@ function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
 }
 
-function SectionHeader({ children }: { children: React.ReactNode }) {
+function SectionHeader({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3 mb-5">
-      <div className="w-0.5 h-4 bg-[#C9922A] flex-shrink-0" />
-      <span className="font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[#1A1A1A]/40">
-        {children}
-      </span>
+    <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center gap-3">
+        <div className="w-0.5 h-4 bg-[#C9922A] flex-shrink-0" />
+        <span className="font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[#1A1A1A]/40">
+          {children}
+        </span>
+      </div>
+      {action}
     </div>
+  )
+}
+
+function EditButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="font-sans text-xs font-semibold text-[#2D5016] hover:text-[#1e3710] transition-colors flex items-center gap-1"
+    >
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+      </svg>
+      Edit
+    </button>
   )
 }
 
@@ -80,9 +105,11 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 function OwnerTab({
   profile,
   recentCaretakers,
+  onEdit,
 }: {
   profile: Profile
   recentCaretakers: RecentCaretaker[]
+  onEdit: () => void
 }) {
   const ownerProfile = resolve(profile.owner_profiles)
 
@@ -91,24 +118,21 @@ function OwnerTab({
 
       {/* Your Horses */}
       <div className="bg-white rounded-2xl shadow-sm p-6">
-        <SectionHeader>Your Horses</SectionHeader>
+        <SectionHeader action={<EditButton onClick={onEdit} />}>Your Horses</SectionHeader>
         {ownerProfile ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#2D5016]/[0.07] flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-[#2D5016]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-sans font-semibold text-[#1A1A1A] text-sm">
-                    {ownerProfile.num_horses} horse{ownerProfile.num_horses !== 1 ? 's' : ''}
-                  </p>
-                  <p className="font-sans text-xs text-[#1A1A1A]/45">{profile.location}</p>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#2D5016]/[0.07] flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-[#2D5016]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
               </div>
-              <span className="font-sans text-xs text-[#1A1A1A]/30 cursor-default">Edit</span>
+              <div>
+                <p className="font-sans font-semibold text-[#1A1A1A] text-sm">
+                  {ownerProfile.num_horses} horse{ownerProfile.num_horses !== 1 ? 's' : ''}
+                </p>
+                <p className="font-sans text-xs text-[#1A1A1A]/45">{profile.location}</p>
+              </div>
             </div>
             {ownerProfile.horse_details && (
               <p className="font-sans text-sm text-[#1A1A1A]/60 leading-relaxed line-clamp-2 pl-[52px]">
@@ -206,7 +230,7 @@ function OwnerTab({
 
 // ── Caretaker tab ─────────────────────────────────────────
 
-function CaretakerTab({ profile }: { profile: Profile }) {
+function CaretakerTab({ profile, onEdit }: { profile: Profile; onEdit: () => void }) {
   const cp = resolve(profile.caretaker_profiles)
 
   return (
@@ -249,7 +273,7 @@ function CaretakerTab({ profile }: { profile: Profile }) {
       {/* Profile summary */}
       {cp && (
         <div className="bg-white rounded-2xl shadow-sm p-6">
-          <SectionHeader>Your Profile Summary</SectionHeader>
+          <SectionHeader action={<EditButton onClick={onEdit} />}>Your Profile Summary</SectionHeader>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               {cp.years_experience != null && (
@@ -319,6 +343,8 @@ export default function DashboardClient({
   recentCaretakers: RecentCaretaker[]
 }) {
   const [activeTab, setActiveTab] = useState<'owner' | 'caretaker'>('owner')
+  const [ownerEditOpen, setOwnerEditOpen] = useState(false)
+  const [caretakerEditOpen, setCaretakerEditOpen] = useState(false)
 
   if (!profile) {
     return (
@@ -333,82 +359,141 @@ export default function DashboardClient({
   const showOwner = hasBoth ? activeTab === 'owner' : profile.is_owner
   const showCaretaker = hasBoth ? activeTab === 'caretaker' : profile.is_caretaker
 
-  return (
-    <div className="max-w-[900px] mx-auto px-6 py-10">
+  const ownerProfile = resolve(profile.owner_profiles)
+  const caretakerProfile = resolve(profile.caretaker_profiles)
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-display text-4xl font-bold text-[#1A1A1A] mb-1">
-          Welcome back, {firstName}
-        </h1>
-        <p className="font-sans text-[#1A1A1A]/45 text-sm">Your HorseWatch dashboard</p>
+  const ownerEditData: OwnerEditProps | null = ownerProfile
+    ? {
+        id: profile.id,
+        full_name: profile.full_name,
+        phone: profile.phone,
+        location: profile.location,
+        num_horses: ownerProfile.num_horses,
+        horse_details: ownerProfile.horse_details,
+        property_address: ownerProfile.property_address,
+        barn_access_notes: ownerProfile.barn_access_notes,
+      }
+    : null
+
+  const caretakerEditData: CaretakerEditProps | null = caretakerProfile
+    ? {
+        id: profile.id,
+        full_name: profile.full_name,
+        phone: profile.phone,
+        location: profile.location,
+        bio: profile.bio,
+        profile_photo_url: profile.profile_photo_url,
+        years_experience: caretakerProfile.years_experience,
+        services: caretakerProfile.services,
+        disciplines: caretakerProfile.disciplines,
+        has_own_transport: caretakerProfile.has_own_transport,
+        rates_per_day: caretakerProfile.rates_per_day,
+        availability_notes: caretakerProfile.availability_notes,
+        references_available: caretakerProfile.references_available,
+      }
+    : null
+
+  return (
+    <>
+      <div className="max-w-[900px] mx-auto px-6 py-10">
+
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="font-display text-4xl font-bold text-[#1A1A1A] mb-1">
+            Welcome back, {firstName}
+          </h1>
+          <p className="font-sans text-[#1A1A1A]/45 text-sm">Your HorseWatch dashboard</p>
+        </div>
+
+        {/* Tabs (only if both roles) */}
+        {hasBoth && (
+          <div className="flex gap-2 mb-7">
+            <button
+              onClick={() => setActiveTab('owner')}
+              className={`px-6 py-2 rounded-full font-sans font-semibold text-sm transition-all duration-150 ${
+                activeTab === 'owner'
+                  ? 'bg-[#2D5016] text-white'
+                  : 'border border-[#2D5016] text-[#2D5016] hover:bg-[#2D5016]/[0.04]'
+              }`}
+            >
+              Owner
+            </button>
+            <button
+              onClick={() => setActiveTab('caretaker')}
+              className={`px-6 py-2 rounded-full font-sans font-semibold text-sm transition-all duration-150 ${
+                activeTab === 'caretaker'
+                  ? 'bg-[#2D5016] text-white'
+                  : 'border border-[#2D5016] text-[#2D5016] hover:bg-[#2D5016]/[0.04]'
+              }`}
+            >
+              Caretaker
+            </button>
+          </div>
+        )}
+
+        {/* Tab content */}
+        {showOwner && (
+          <OwnerTab
+            profile={profile}
+            recentCaretakers={recentCaretakers}
+            onEdit={() => setOwnerEditOpen(true)}
+          />
+        )}
+        {showCaretaker && (
+          <CaretakerTab
+            profile={profile}
+            onEdit={() => setCaretakerEditOpen(true)}
+          />
+        )}
+
+        {/* Add role CTA */}
+        {profile.is_caretaker && !profile.is_owner && (
+          <div className="mt-6 bg-white rounded-2xl shadow-sm p-6 border-l-4 border-l-[#C9922A]">
+            <h3 className="font-display text-lg font-bold text-[#1A1A1A] mb-1">Also an owner?</h3>
+            <p className="font-sans text-sm text-[#1A1A1A]/55 mb-4">
+              Register your horses and start browsing caretakers.
+            </p>
+            <Link
+              href="/dashboard/become-owner"
+              className="inline-flex items-center px-6 py-2.5 rounded-full bg-[#2D5016] text-white font-sans font-semibold text-sm hover:bg-[#1e3710] transition-colors duration-150"
+            >
+              Register as Owner →
+            </Link>
+          </div>
+        )}
+
+        {profile.is_owner && !profile.is_caretaker && (
+          <div className="mt-6 bg-white rounded-2xl shadow-sm p-6 border-l-4 border-l-[#C9922A]">
+            <h3 className="font-display text-lg font-bold text-[#1A1A1A] mb-1">Want to offer care?</h3>
+            <p className="font-sans text-sm text-[#1A1A1A]/55 mb-4">
+              List your experience and let owners find you.
+            </p>
+            <Link
+              href="/dashboard/become-caretaker"
+              className="inline-flex items-center px-6 py-2.5 rounded-full bg-[#2D5016] text-white font-sans font-semibold text-sm hover:bg-[#1e3710] transition-colors duration-150"
+            >
+              Become a Caretaker →
+            </Link>
+          </div>
+        )}
+
       </div>
 
-      {/* Tabs (only if both roles) */}
-      {hasBoth && (
-        <div className="flex gap-2 mb-7">
-          <button
-            onClick={() => setActiveTab('owner')}
-            className={`px-6 py-2 rounded-full font-sans font-semibold text-sm transition-all duration-150 ${
-              activeTab === 'owner'
-                ? 'bg-[#2D5016] text-white'
-                : 'border border-[#2D5016] text-[#2D5016] hover:bg-[#2D5016]/[0.04]'
-            }`}
-          >
-            Owner
-          </button>
-          <button
-            onClick={() => setActiveTab('caretaker')}
-            className={`px-6 py-2 rounded-full font-sans font-semibold text-sm transition-all duration-150 ${
-              activeTab === 'caretaker'
-                ? 'bg-[#2D5016] text-white'
-                : 'border border-[#2D5016] text-[#2D5016] hover:bg-[#2D5016]/[0.04]'
-            }`}
-          >
-            Caretaker
-          </button>
-        </div>
+      {/* Edit drawers */}
+      {ownerEditData && (
+        <OwnerEditDrawer
+          open={ownerEditOpen}
+          onClose={() => setOwnerEditOpen(false)}
+          data={ownerEditData}
+        />
       )}
-
-      {/* Tab content */}
-      {showOwner && (
-        <OwnerTab profile={profile} recentCaretakers={recentCaretakers} />
+      {caretakerEditData && (
+        <CaretakerEditDrawer
+          open={caretakerEditOpen}
+          onClose={() => setCaretakerEditOpen(false)}
+          data={caretakerEditData}
+        />
       )}
-      {showCaretaker && (
-        <CaretakerTab profile={profile} />
-      )}
-
-      {/* Add role CTA */}
-      {profile.is_caretaker && !profile.is_owner && (
-        <div className="mt-6 bg-white rounded-2xl shadow-sm p-6 border-l-4 border-l-[#C9922A]">
-          <h3 className="font-display text-lg font-bold text-[#1A1A1A] mb-1">Also an owner?</h3>
-          <p className="font-sans text-sm text-[#1A1A1A]/55 mb-4">
-            Register your horses and start browsing caretakers.
-          </p>
-          <Link
-            href="/dashboard/become-owner"
-            className="inline-flex items-center px-6 py-2.5 rounded-full bg-[#2D5016] text-white font-sans font-semibold text-sm hover:bg-[#1e3710] transition-colors duration-150"
-          >
-            Register as Owner →
-          </Link>
-        </div>
-      )}
-
-      {profile.is_owner && !profile.is_caretaker && (
-        <div className="mt-6 bg-white rounded-2xl shadow-sm p-6 border-l-4 border-l-[#C9922A]">
-          <h3 className="font-display text-lg font-bold text-[#1A1A1A] mb-1">Want to offer care?</h3>
-          <p className="font-sans text-sm text-[#1A1A1A]/55 mb-4">
-            List your experience and let owners find you.
-          </p>
-          <Link
-            href="/dashboard/become-caretaker"
-            className="inline-flex items-center px-6 py-2.5 rounded-full bg-[#2D5016] text-white font-sans font-semibold text-sm hover:bg-[#1e3710] transition-colors duration-150"
-          >
-            Become a Caretaker →
-          </Link>
-        </div>
-      )}
-
-    </div>
+    </>
   )
 }

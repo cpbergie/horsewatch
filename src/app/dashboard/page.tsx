@@ -20,7 +20,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await admin
     .from('profiles')
-    .select('id, full_name, location, is_owner, is_caretaker, is_approved, owner_profiles(*), caretaker_profiles(*)')
+    .select('id, full_name, phone, location, bio, profile_photo_url, is_owner, is_caretaker, is_approved, owner_profiles(*), caretaker_profiles(*)')
     .eq('id', user.id)
     .single()
 
