@@ -26,6 +26,15 @@ interface CreateCaretakerProfileData {
 }
 
 export async function createCaretakerProfile(data: CreateCaretakerProfileData) {
+  try {
+    return await _createCaretakerProfile(data)
+  } catch (err) {
+    console.error('createCaretakerProfile threw:', err)
+    return { error: err instanceof Error ? err.message : String(err) }
+  }
+}
+
+async function _createCaretakerProfile(data: CreateCaretakerProfileData) {
   const supabase = createAdminClient()
 
   let profilePhotoUrl: string | null = null
