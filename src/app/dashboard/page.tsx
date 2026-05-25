@@ -18,6 +18,8 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
+  if (!profile) redirect('/setup')
+
   const { data: recentCaretakers } = await supabase
     .from('profiles')
     .select('id, full_name, location, profile_photo_url, caretaker_profiles(services)')
