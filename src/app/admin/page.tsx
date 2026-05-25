@@ -36,7 +36,7 @@ export default async function AdminPage() {
   const pendingCount = (pending ?? []).length
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]">
+    <div className="min-h-screen bg-[#FAF9F6] pt-16">
       <Navbar />
       <AdminClient
         pending={pending ?? []}

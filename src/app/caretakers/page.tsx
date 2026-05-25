@@ -167,7 +167,7 @@ export default async function CaretakersPage() {
   const list = (caretakers ?? []) as Caretaker[]
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]">
+    <div className="min-h-screen bg-[#FAF9F6] pt-16">
       <Navbar />
 
       <div className="max-w-[1100px] mx-auto px-6 py-12">

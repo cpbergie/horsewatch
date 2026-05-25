@@ -35,7 +35,7 @@ export default async function DashboardPage() {
     .limit(3)
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]">
+    <div className="min-h-screen bg-[#FAF9F6] pt-16">
       <Navbar />
       <DashboardClient
         profile={profile}

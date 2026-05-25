@@ -63,7 +63,7 @@ export default async function CaretakerProfilePage({
   const firstName = caretaker.full_name.split(' ')[0]
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] pb-28">
+    <div className="min-h-screen bg-[#FAF9F6] pb-28 pt-16">
       <Navbar />
 
       {/* Back link */}
