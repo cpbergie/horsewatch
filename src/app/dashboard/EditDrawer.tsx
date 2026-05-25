@@ -135,7 +135,7 @@ function CheckboxList({ options, selected, onChange }: {
             type="checkbox"
             checked={selected.includes(opt.value)}
             onChange={() => toggle(opt.value)}
-            className="w-4 h-4 rounded border-[#e5e7eb] text-[#2D5016] focus:ring-[#2D5016]/20 cursor-pointer"
+            className="w-4 h-4 rounded border-[#e5e7eb] accent-[#2D5016] cursor-pointer"
           />
           <span className="font-sans text-sm text-[#1A1A1A] group-hover:text-[#2D5016] transition-colors">{opt.label}</span>
         </label>

@@ -19,7 +19,8 @@ create table public.profiles (
   is_owner          boolean default false,
   is_caretaker      boolean default false,
   is_admin          boolean default false,
-  is_approved       boolean default false  -- caretakers must be approved before appearing in browse
+  is_approved       boolean default false,  -- caretakers must be approved before appearing in browse
+  caretaker_status  text default 'pending' check (caretaker_status in ('pending', 'approved', 'rejected'))
 );
 
 create table public.owner_profiles (

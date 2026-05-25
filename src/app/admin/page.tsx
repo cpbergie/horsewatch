@@ -22,7 +22,7 @@ export default async function AdminPage() {
     .from('profiles')
     .select('id, full_name, email, location, profile_photo_url, created_at, caretaker_profiles(years_experience, services, bio)')
     .eq('is_caretaker', true)
-    .eq('is_approved', false)
+    .eq('caretaker_status', 'pending')
     .order('created_at', { ascending: true })
 
   const { data: allUsers } = await admin
