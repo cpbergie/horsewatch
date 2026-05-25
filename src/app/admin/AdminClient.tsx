@@ -86,29 +86,18 @@ export default function AdminClient({
 }) {
   const router = useRouter()
   const [loadingMap, setLoadingMap] = useState<Record<string, 'approving' | 'rejecting' | null>>({})
-  const [errorMap, setErrorMap] = useState<Record<string, string>>({})
 
   async function handleApprove(id: string) {
     setLoadingMap(m => ({ ...m, [id]: 'approving' }))
-    setErrorMap(m => ({ ...m, [id]: '' }))
-    const result = await approveCaretaker(id)
-    if ('error' in result) {
-      setErrorMap(m => ({ ...m, [id]: result.error ?? 'Unknown error' }))
-    } else {
-      router.refresh()
-    }
+    await approveCaretaker(id)
+    router.refresh()
     setLoadingMap(m => ({ ...m, [id]: null }))
   }
 
   async function handleReject(id: string) {
     setLoadingMap(m => ({ ...m, [id]: 'rejecting' }))
-    setErrorMap(m => ({ ...m, [id]: '' }))
-    const result = await rejectCaretaker(id)
-    if ('error' in result) {
-      setErrorMap(m => ({ ...m, [id]: result.error ?? 'Unknown error' }))
-    } else {
-      router.refresh()
-    }
+    await rejectCaretaker(id)
+    router.refresh()
     setLoadingMap(m => ({ ...m, [id]: null }))
   }
 
