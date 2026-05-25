@@ -86,18 +86,29 @@ export default function AdminClient({
 }) {
   const router = useRouter()
   const [loadingMap, setLoadingMap] = useState<Record<string, 'approving' | 'rejecting' | null>>({})
+  const [errorMap, setErrorMap] = useState<Record<string, string>>({})
 
   async function handleApprove(id: string) {
     setLoadingMap(m => ({ ...m, [id]: 'approving' }))
-    await approveCaretaker(id)
-    router.refresh()
+    setErrorMap(m => ({ ...m, [id]: '' }))
+    const result = await approveCaretaker(id)
+    if ('error' in result) {
+      setErrorMap(m => ({ ...m, [id]: result.error ?? 'Unknown error' }))
+    } else {
+      router.refresh()
+    }
     setLoadingMap(m => ({ ...m, [id]: null }))
   }
 
   async function handleReject(id: string) {
     setLoadingMap(m => ({ ...m, [id]: 'rejecting' }))
-    await rejectCaretaker(id)
-    router.refresh()
+    setErrorMap(m => ({ ...m, [id]: '' }))
+    const result = await rejectCaretaker(id)
+    if ('error' in result) {
+      setErrorMap(m => ({ ...m, [id]: result.error ?? 'Unknown error' }))
+    } else {
+      router.refresh()
+    }
     setLoadingMap(m => ({ ...m, [id]: null }))
   }
 
@@ -265,15 +276,17 @@ export default function AdminClient({
                     </div>
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap">
-                    {u.is_caretaker && u.caretaker_status ? (
+                    {u.is_caretaker ? (
                       <span className={`text-xs font-sans font-medium rounded-full px-2.5 py-0.5 ${
-                        u.caretaker_status === 'approved'
+                        u.caretaker_status === 'approved' || u.is_approved
                           ? 'bg-green-50 text-green-700'
                           : u.caretaker_status === 'rejected'
                           ? 'bg-red-50 text-red-600'
                           : 'bg-amber-50 text-amber-700'
                       }`}>
-                        {u.caretaker_status.charAt(0).toUpperCase() + u.caretaker_status.slice(1)}
+                        {u.caretaker_status
+                          ? u.caretaker_status.charAt(0).toUpperCase() + u.caretaker_status.slice(1)
+                          : u.is_approved ? 'Approved' : 'Pending'}
                       </span>
                     ) : u.is_owner ? (
                       <span className="text-xs font-sans font-medium rounded-full px-2.5 py-0.5 bg-green-50 text-green-700">Active</span>

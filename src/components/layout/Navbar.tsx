@@ -2,21 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isLanding = pathname === '/'
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
+    if (!isLanding) return
     const handleScroll = () => setScrolled(window.scrollY > 60)
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isLanding])
 
   useEffect(() => {
     const supabase = createClient()
@@ -41,7 +44,7 @@ export default function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white shadow-sm' : 'bg-transparent'
+        !isLanding || scrolled ? 'bg-white shadow-sm' : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -49,7 +52,7 @@ export default function Navbar() {
         <Link
           href="/"
           className={`font-display text-2xl font-bold tracking-tight transition-colors duration-300 ${
-            scrolled ? 'text-[#2D5016]' : 'text-white'
+            !isLanding || scrolled ? 'text-[#2D5016]' : 'text-white'
           }`}
         >
           HorseWatch
@@ -62,7 +65,7 @@ export default function Navbar() {
               <Link
                 href="/dashboard"
                 className={`text-sm font-medium transition-colors duration-300 ${
-                  scrolled ? 'text-[#1A1A1A] hover:text-[#2D5016]' : 'text-white/85 hover:text-white'
+                  !isLanding || scrolled ? 'text-[#1A1A1A] hover:text-[#2D5016]' : 'text-white/85 hover:text-white'
                 }`}
               >
                 Dashboard
@@ -70,7 +73,7 @@ export default function Navbar() {
               <button
                 onClick={handleSignOut}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  scrolled
+                  !isLanding || scrolled
                     ? 'bg-[#2D5016] text-white hover:bg-[#1e3710]'
                     : 'bg-white text-[#2D5016] hover:bg-white/90'
                 }`}
@@ -83,7 +86,7 @@ export default function Navbar() {
               <Link
                 href="/login"
                 className={`text-sm font-medium transition-colors duration-300 ${
-                  scrolled ? 'text-[#1A1A1A] hover:text-[#2D5016]' : 'text-white/85 hover:text-white'
+                  !isLanding || scrolled ? 'text-[#1A1A1A] hover:text-[#2D5016]' : 'text-white/85 hover:text-white'
                 }`}
               >
                 Log In
@@ -91,7 +94,7 @@ export default function Navbar() {
               <Link
                 href="/signup/owner"
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  scrolled
+                  !isLanding || scrolled
                     ? 'bg-[#2D5016] text-white hover:bg-[#1e3710]'
                     : 'bg-white text-[#2D5016] hover:bg-white/90'
                 }`}
@@ -106,7 +109,7 @@ export default function Navbar() {
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className={`md:hidden p-1 transition-colors duration-300 ${
-            scrolled ? 'text-[#1A1A1A]' : 'text-white'
+            !isLanding || scrolled ? 'text-[#1A1A1A]' : 'text-white'
           }`}
           aria-label="Toggle navigation menu"
         >
