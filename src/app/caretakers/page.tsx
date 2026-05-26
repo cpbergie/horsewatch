@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // ── Service label map ─────────────────────────────────────
 
@@ -156,7 +156,7 @@ function CaretakerCard({ caretaker, index }: { caretaker: Caretaker; index: numb
 // ── Page ──────────────────────────────────────────────────
 
 export default async function CaretakersPage() {
-  const supabase = createClient()
+  const supabase = createAdminClient()
 
   const { data: caretakers } = await supabase
     .from('profiles')
