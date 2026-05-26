@@ -74,7 +74,19 @@ export default function Navbar() {
       if (data) setNavProfile(data)
     }
 
-    // onAuthStateChange fires with INITIAL_SESSION on first load
+    // getSession() resolves immediately from storage — ensures authLoaded is
+    // set even for logged-out users where INITIAL_SESSION may not fire
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        await fetchProfile(session.user.id)
+      } else {
+        setNavProfile(null)
+      }
+      setAuthLoaded(true)
+    })
+
+    // Subscribe to sign-in / sign-out / token refresh events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
