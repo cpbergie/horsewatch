@@ -14,6 +14,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [authLoaded, setAuthLoaded] = useState(false)
 
   useEffect(() => {
     if (!isLanding) return
@@ -26,16 +27,18 @@ export default function Navbar() {
     const supabase = createClient()
 
     async function loadUser() {
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
-      if (data.user) {
+      // getSession reads from local storage — no network call, no flash
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('is_admin')
-          .eq('id', data.user.id)
+          .eq('id', session.user.id)
           .single()
         setIsAdmin(profile?.is_admin ?? false)
       }
+      setAuthLoaded(true)
     }
 
     loadUser()
@@ -52,6 +55,7 @@ export default function Navbar() {
       } else {
         setIsAdmin(false)
       }
+      setAuthLoaded(true)
     })
 
     return () => subscription.unsubscribe()
@@ -84,7 +88,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-6">
-          {user ? (
+          {authLoaded && (user ? (
             <>
               {isAdmin && (
                 <Link
@@ -136,7 +140,7 @@ export default function Navbar() {
                 Sign Up
               </Link>
             </>
-          )}
+          ))}
         </div>
 
         {/* Mobile hamburger */}
@@ -161,7 +165,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
           <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col gap-4">
-            {user ? (
+            {authLoaded && (user ? (
               <>
                 {isAdmin && (
                   <Link
@@ -210,7 +214,7 @@ export default function Navbar() {
                   Become a Caretaker
                 </Link>
               </>
-            )}
+            ))}
           </div>
         </div>
       )}
