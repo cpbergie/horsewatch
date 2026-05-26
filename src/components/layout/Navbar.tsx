@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import NavbarClient from './NavbarClient'
 
 /**
  * Server component — reads auth state from cookies on every request.
- * Passes user + profile as props to the interactive client component.
- * This eliminates all client-side auth timing issues.
+ * Uses admin client for profile fetch to bypass recursive RLS policies
+ * on the profiles table. Safe here because this runs server-side only.
  */
 export default async function Navbar() {
   const supabase = createClient()
@@ -13,7 +14,8 @@ export default async function Navbar() {
   let navProfile: { full_name: string; profile_photo_url: string | null; is_admin: boolean } | null = null
 
   if (user) {
-    const { data } = await supabase
+    const admin = createAdminClient()
+    const { data } = await admin
       .from('profiles')
       .select('full_name, profile_photo_url, is_admin')
       .eq('id', user.id)

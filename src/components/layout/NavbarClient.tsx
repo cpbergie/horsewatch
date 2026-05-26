@@ -67,7 +67,9 @@ export default function NavbarClient({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // Watch for client-side auth changes (sign-out / sign-in without navigation)
+  // Watch for client-side auth changes (sign-out / sign-in)
+  // Profile data comes from the server component on each navigation —
+  // avoid querying profiles directly from the browser (recursive RLS issue)
   useEffect(() => {
     const supabase = createClient()
     let mounted = true
@@ -75,19 +77,18 @@ export default function NavbarClient({
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return
       setUser(session?.user ?? null)
-      if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('full_name, profile_photo_url, is_admin')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => { if (mounted && data) setNavProfile(data) })
-      } else {
+      if (!session?.user) {
         setNavProfile(null)
+      }
+      // On sign-in, refresh the page so the server component re-renders
+      // with the correct profile data from the admin client
+      if (session?.user && !user) {
+        router.refresh()
       }
     })
 
     return () => { mounted = false; subscription.unsubscribe() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSignOut = async () => {
