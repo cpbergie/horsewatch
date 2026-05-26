@@ -64,40 +64,46 @@ export default function Navbar() {
   // Auth state
   useEffect(() => {
     const supabase = createClient()
+    let mounted = true
 
-    async function fetchProfile(userId: string) {
-      const { data } = await supabase
+    function fetchProfile(userId: string) {
+      supabase
         .from('profiles')
         .select('full_name, profile_photo_url, is_admin')
         .eq('id', userId)
         .single()
-      if (data) setNavProfile(data)
+        .then(({ data }) => {
+          if (mounted && data) setNavProfile(data)
+        })
     }
 
-    // getSession() resolves immediately from storage — ensures authLoaded is
-    // set even for logged-out users where INITIAL_SESSION may not fire
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Resolve session immediately from storage, then mark auth as loaded
+    // right away — don't block on fetchProfile so nav never stays blank
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return
       setUser(session?.user ?? null)
+      setAuthLoaded(true)           // show nav links as soon as we know
       if (session?.user) {
-        await fetchProfile(session.user.id)
+        fetchProfile(session.user.id)  // profile loads in parallel
+      }
+    })
+
+    // Handle sign-in / sign-out / token refresh
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      setUser(session?.user ?? null)
+      setAuthLoaded(true)
+      if (session?.user) {
+        fetchProfile(session.user.id)
       } else {
         setNavProfile(null)
       }
-      setAuthLoaded(true)
     })
 
-    // Subscribe to sign-in / sign-out / token refresh events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
-        setNavProfile(null)
-      }
-      setAuthLoaded(true)
-    })
-
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const handleSignOut = async () => {
