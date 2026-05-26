@@ -13,6 +13,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     if (!isLanding) return
@@ -24,10 +25,33 @@ export default function Navbar() {
   useEffect(() => {
     const supabase = createClient()
 
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser()
+      setUser(data.user)
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', data.user.id)
+          .single()
+        setIsAdmin(profile?.is_admin ?? false)
+      }
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    loadUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', session.user.id)
+          .single()
+        setIsAdmin(profile?.is_admin ?? false)
+      } else {
+        setIsAdmin(false)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -62,6 +86,16 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           {user ? (
             <>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className={`text-sm font-medium transition-colors duration-300 ${
+                    !isLanding || scrolled ? 'text-[#C9922A] hover:text-[#b37e20]' : 'text-white/85 hover:text-white'
+                  }`}
+                >
+                  Admin
+                </Link>
+              )}
               <Link
                 href="/dashboard"
                 className={`text-sm font-medium transition-colors duration-300 ${
@@ -129,6 +163,15 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col gap-4">
             {user ? (
               <>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="text-[#C9922A] font-medium text-sm py-1"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Link
                   href="/dashboard"
                   className="text-[#1A1A1A] font-medium text-sm py-1"
