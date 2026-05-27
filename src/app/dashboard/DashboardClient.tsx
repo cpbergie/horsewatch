@@ -325,7 +325,7 @@ function CaretakerTab({ profile, onEdit }: { profile: Profile; onEdit: () => voi
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <SectionHeader>Incoming Inquiries</SectionHeader>
         <p className="font-sans text-sm text-[#1A1A1A]/40">
-          No inquiries yet — owners will reach out once your profile is approved.
+          No inquiries yet — sit back, your profile is live and owners will find you.
         </p>
       </div>
 
