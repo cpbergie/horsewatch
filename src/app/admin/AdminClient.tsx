@@ -15,16 +15,15 @@ interface PendingCaretaker {
   full_name: string
   email: string
   location: string
+  bio: string | null
   profile_photo_url: string | null
   created_at: string
   caretaker_profiles: {
     years_experience: number
     services: string[]
-    bio: string | null
   } | {
     years_experience: number
     services: string[]
-    bio: string | null
   }[] | null
 }
 
@@ -175,9 +174,9 @@ export default function AdminClient({
                   </div>
 
                   {/* Bio */}
-                  {cp?.bio && (
+                  {ct.bio && (
                     <p className="font-sans text-sm text-[#1A1A1A]/60 leading-relaxed line-clamp-2 mb-3">
-                      {cp.bio}
+                      {ct.bio}
                     </p>
                   )}
 

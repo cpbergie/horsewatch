@@ -20,7 +20,7 @@ export default async function AdminPage() {
 
   const { data: pending } = await admin
     .from('profiles')
-    .select('id, full_name, email, location, profile_photo_url, created_at, caretaker_profiles(years_experience, services, bio)')
+    .select('id, full_name, email, location, bio, profile_photo_url, created_at, caretaker_profiles(years_experience, services)')
     .eq('is_caretaker', true)
     .eq('caretaker_status', 'pending')
     .order('created_at', { ascending: true })
