@@ -100,7 +100,7 @@ export default function HomePage() {
                 {
                   num: '03',
                   title: 'Send an inquiry',
-                  desc: "Connect directly — no middleman, no booking fees. Just you and your caretaker.",
+                  desc: "Connect directly with your caretaker. A small platform fee applies — a fraction of what traditional services charge.",
                   icon: (
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
